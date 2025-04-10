@@ -1,11 +1,11 @@
-#===============MESHGRID HELPER FUNCTION=======================#
+#=============== MESHGRID HELPER FUNCTION =======================#
 function meshgrid(x::AbstractVector, y::AbstractVector)
     X = repeat(x, 1, length(y))
     Y = repeat(y', length(x), 1)
     return X, Y 
 end
 
-#===============NOT SUGGESTED TO RUN, ALMOST CRASHED====================#
+#=============== NOT SUGGESTED TO RUN, ALMOST CRASHED ====================#
 function plot_circle_hyperbola(r1, r2)
     # Define the functions for f1 and f2
     f1(x1, x2) = x1^2 + x2^2 - r1^2 # Circle
@@ -37,3 +37,29 @@ function plot_circle_hyperbola(r1, r2)
     # Display the plot
     display(plt1)
 end
+
+#=============== PLOTTING A RECTANGLE ====================#
+function plot_rectangle(xc,yc,w,h,color="brown")
+    x1 = xc - w/2
+    x2 = xc + w/2
+    y1 = yc
+    y2 = yc + h
+    plot!([x1, x2, x2, x1, x1], [y1, y1, y2, y2, y1], fill=true, fillalpha=1.0, fillcolor=color, linecolor=color, legend=false)
+end
+
+#=============== PLOTTING ROBOT'S CONFIGURATION ====================#
+function plot_points(positions, label; line_thickness=5, ball_size=10)
+    # Extract positions
+    p0 = positions.p0
+    p1 = positions.p1
+    p2 = positions.p2
+    p3 = positions.p3
+    # plot obstacles
+    plot_rectangle(1.75, 1, 4, 0.1)
+    plot_rectangle(1.75, -0.1, 4, 0.1)
+    # plot robot configuration
+    scatter!([p3[1]], [p3[2]], color=:green, markersize=2*ball_size, marker=:square, label=nothing)  
+    plot!([p0[1], p1[1], p2[1], p3[1]], [p0[2], p1[2], p2[2], p3[2]], linewidth=line_thickness, color=:blue, label=label)        
+    scatter!([p0[1], p1[1], p2[1], p3[1]], [p0[2], p1[2], p2[2], p3[2]], color=:red, markersize=ball_size, label=nothing)
+end
+ 
