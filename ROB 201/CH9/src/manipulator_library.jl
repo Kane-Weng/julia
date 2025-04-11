@@ -178,58 +178,66 @@ function dyn_mod_3LinkManipulator(q, dq)
     return (D=D, C=C, G=G, B=B, JacG=JacG)
 end
 
-function dyn_mod_3LinkWalker(q, dq)
-    # DYN_MOD_3LINKWALKER
-    # 2024-07-22 14:48:18
-    #
-    # Author: Grizzle
-    #
-    # Model NOTATION: D(q)ddq + C(q,dq)*dq + G(q) = B*tau 
-    # The Robot Equations: From Lagrange's Equations of Motion
-    #
-    g, r, L, m, Mh, Mt = modelParameters3LinkWalker()
-    #
-    # Variable names for the model
-    th1, th2, th3 = q 
-    dth1, dth2, dth3 = dq
-    #
-    D = zeros(3, 3)
-      D[1, 1] = r^2*(Mh + Mt + 5*m/4)
-      D[1, 2] = -0.5*m*r^2*cos(th1 - th2)
-      D[1, 3] = L*Mt*r*cos(th1 - th3)
-      D[2, 1] = -0.5*m*r^2*cos(th1 - th2)
-      D[2, 2] = 0.25*m*r^2
-      D[2, 3] = 0
-      D[3, 1] = L*Mt*r*cos(th1 - th3)
-      D[3, 2] = 0
-      D[3, 3] = L^2*Mt
-    #
-    C = zeros(3, 3)
-      C[1, 1] = 0.0
-      C[1, 2] = -0.5*dth2*m*r^2*sin(th1 - th2)
-      C[1, 3] = L*Mt*dth3*r*sin(th1 - th3)
-      C[2, 1] = 0.5*dth1*m*r^2*sin(th1 - th2)
-      C[2, 2] = 0.0
-      C[2, 3] = 0.0
-      C[3, 1] = -L*Mt*dth1*r*sin(th1 - th3)
-      C[3, 2] = 0.0
-      C[3, 3] = 0.0
-    #
-    G = zeros(3)
-      G[1] = -Mh*g*r*sin(th1) - Mt*g*r*sin(th1) - (3/2)*g*m*r*sin(th1)
-      G[2] = (1/2)*g*m*r*sin(th2)
-      G[3] = -L*Mt*g*sin(th3)
-    #
-    B = zeros(3, 2)
-      B[1, 1] = -1
-      B[2, 2] = -1
-      B[3, 1] = 1
-      B[3, 2] = 1
-    #
-    JacG = zeros(3, 3)
-      JacG[1, 1] = -Mh*g*r*cos(th1) - Mt*g*r*cos(th1) - (3/2)*g*m*r*cos(th1)
-      JacG[2, 2] = (1/2)*g*m*r*cos(th2)
-      JacG[3, 3] = -L*Mt*g*cos(th3)
-    #
-    return (D=D, C=C, G=G, B=B, JacG=JacG)
+function dyn_mod_2LinkManipulatorWithSprings(q, dq)
+  # DYN_MOD_2LINKMANIPULATORWITHSPRINGS
+  # 2024-07-22 14:52:28
+  #
+  # Author: Grizzle
+  #
+  # Model NOTATION: D(q)ddq + C(q,dq)*dq + G(q) = B*tau 
+  # The Robot Equations: From Lagrange's Equations of Motion
+  #
+   
+  #
+  # Variable names for the model
+  q1, q2 = q 
+  dq1, dq2 = dq
+  #
+  D = zeros(2, 2)
+    D[1, 1] = 3.0*cos(q2) + 4.75
+    D[1, 2] = 1.5*cos(q2) + 0.75
+    D[2, 1] = 1.5*cos(q2) + 0.75
+    D[2, 2] = 0.750000000000000
+  #
+  C = zeros(2, 2)
+    C[1, 1] = -1.5*dq2*sin(q2)
+    C[1, 2] = -1.5*(dq1 + dq2)*sin(q2)
+    C[2, 1] = 1.5*dq1*sin(q2)
+    C[2, 2] = 0.0
+  #
+  G = zeros(2)
+    G[1] = 14.715cos(q1 + q2) + 24.0q1 + 39.24cos(q1)
+    G[2] = 14.715cos(q1 + q2) + 24.0q2
+  #
+  B = zeros(2, 2)
+    B[1, 1] = 1
+    B[2, 2] = 1
+  #
+  JacG = zeros(2, 2)
+    JacG[1, 1] = 24.0 - 14.715sin(q1 + q2) - 39.24sin(q1)
+    JacG[1, 2] = -14.715sin(q1 + q2)
+    JacG[2, 1] = -14.715sin(q1 + q2)
+    JacG[2, 2] = 24.0 - 14.715sin(q1 + q2)
+  #
+  return (D=D, C=C, G=G, B=B, JacG=JacG)
+end
+
+function cleanUp(A, tol=1e-10)
+  B = copy(A)
+  for i in eachindex(B)
+      if isa(B[i], Complex)
+          # Clean up the real part
+          real_part = abs(real(B[i])) < tol ? 0.0 : real(B[i])
+          # Clean up the imaginary part
+          imag_part = abs(imag(B[i])) < tol ? 0.0 : imag(B[i])
+          # Reconstruct the complex number
+          B[i] = real_part + imag_part * im
+      else
+          # Original cleanup for non-complex numbers
+          if abs(B[i]) < tol
+              B[i] = 0.0
+          end
+      end
+  end
+  return B
 end
